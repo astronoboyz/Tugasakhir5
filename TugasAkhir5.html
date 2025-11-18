@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Tugas Akhir - Kalkulator Interaktif</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* CSS Styling untuk Responsive Design */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .calculator {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            width: 100%;
+            max-width: 350px; /* Lebar optimal untuk desktop */
+            margin: 20px;
+        }
+
+        /* Responsive Design untuk Mobile */
+        @media (max-width: 400px) {
+            .calculator {
+                max-width: 90%;
+            }
+        }
+
+        .display {
+            background-color: #222222;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: right;
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #history-display {
+            font-size: 16px;
+            color: #aaaaaa;
+            min-height: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        #current-display {
+            font-size: 3em;
+            font-weight: 300;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Angka */
+        button.number {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        button.number:hover {
+            background-color: #d0d0d0;
+        }
+
+        /* Operator */
+        button.operator {
+            background-color: #ff9500;
+            color: white;
+        }
+        button.operator:hover {
+            background-color: #cc7700;
+        }
+
+        /* Kontrol (C, CE, .) dan Memory */
+        button.control, button.memory-btn {
+            background-color: #cccccc;
+            color: #333;
+        }
+        button.control:hover, button.memory-btn:hover {
+            background-color: #b0b0b0;
+        }
+
+        /* Equals */
+        button.equals {
+            background-color: #4CAF50;
+            color: white;
+            grid-column: span 1;
+        }
+        button.equals:hover {
+            background-color: #45a049;
+        }
+        
+        /* History & Memory Panel */
+        .panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f5;
+            border-radius: 10px;
+        }
+        
+        .history-list {
+            max-height: 100px;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+        }
+        .history-list li {
+            font-size: 0.9em;
+            border-bottom: 1px dashed #ddd;
+            padding: 3px 0;
+            color: #555;
+        }
+        
+        .memory-info {
+            font-size: 1em;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator">
+        <h2>Kalkulator Interaktif</h2>
+        
+        <div class="display">
+            <div id="history-display"></div>
+            <div id="current-display">0</div>
+        </div>
+
+        <div class="buttons-grid">
+            <button class="memory-btn" onclick="handleMemory('MC')">MC</button>
+            <button class="memory-btn" onclick="handleMemory('MR')">MR</button>
+            <button class="memory-btn" onclick="handleMemory('M-')">M-</button>
+            <button class="memory-btn" onclick="handleMemory('M+')">M+</button>
+
+            <button class="control" onclick="clearCalculator('C')">C</button>
+            <button class="control" onclick="clearCalculator('CE')">CE</button>
+            <button class="operator" data-operator="/" onclick="handleOperator('/')">÷</button>
+            <button class="operator" data-operator="*" onclick="handleOperator('*')">×</button>
+
+            <button class="number" onclick="inputDigit('7')">7</button>
+            <button class="number" onclick="inputDigit('8')">8</button>
+            <button class="number" onclick="inputDigit('9')">9</button>
+            <button class="operator" data-operator="-" onclick="handleOperator('-')">−</button>
+
+            <button class="number" onclick="inputDigit('4')">4</button>
+            <button class="number" onclick="inputDigit('5')">5</button>
+            <button class="number" onclick="inputDigit('6')">6</button>
+            <button class="operator" data-operator="+" onclick="handleOperator('+')">+</button>
+
+            <button class="number" onclick="inputDigit('1')">1</button>
+            <button class="number" onclick="inputDigit('2')">2</button>
+            <button class="number" onclick="inputDigit('3')">3</button>
+            <button class="equals" onclick="handleEquals()">=</button>
+
+            <button class="number" style="grid-column: span 2;" onclick="inputDigit('0')">0</button>
+            <button class="control" onclick="inputDigit('.')">.</button>
+            <button class="control" onclick="toggleSign()">±</button>
+        </div>
+        
+        <div class="panel">
+            <h4>History Perhitungan (5 Terakhir)</h4>
+            <ul id="history-list" class="history-list">
+                </ul>
+        </div>
+
+        <div class="memory-info">
+            Memory (M): <span id="memory-value">0</span>
+        </div>
+    </div>
+    
+    <script>
+        // State Kalkulator (Menggunakan konsep dari 5.4 - manajemen state)
+        let currentInput = '0';    
+        let previousInput = null;  
+        let operator = null;       
+        let historyString = '';    
+        let awaitingSecondOperand = false; 
+        let calculationHistory = []; // Untuk riwayat (max 5)
+        let memoryValue = 0;       // Untuk fungsi M+, M-, MR, MC
+
+        const MAX_HISTORY = 5;
+
+        // Mendapatkan elemen DOM (Mirip 5.2 - Manipulasi DOM)
+        const currentDisplay = document.getElementById('current-display');
+        const historyDisplay = document.getElementById('history-display');
+        const historyList = document.getElementById('history-list');
+        const memoryValueElement = document.getElementById('memory-value');
+
+        // Fungsi Update DOM Display (Mirip 5.2)
+        function updateDisplay() {
+            currentDisplay.innerText = currentInput;
+            historyDisplay.innerText = historyString;
+            // Batasi panjang tampilan agar tidak terlalu lebar
+            if (currentInput.length > 12) {
+                currentDisplay.style.fontSize = '2em';
+            } else {
+                currentDisplay.style.fontSize = '3em';
+            }
+        }
+        
+        // Fungsi Update History List
+        function updateHistoryList() {
+            historyList.innerHTML = calculationHistory.map(item => `
+                <li>${item}</li>
+            `).join('');
+        }
+
+        // Fungsi Operasi Aritmatika (Mirip 5.1 - Fungsi JavaScript)
+        const operate = (prev, next, op) => {
+            prev = parseFloat(prev);
+            next = parseFloat(next);
+
+            if (op === '/' && next === 0) {
+                return 'Error: Dibagi Nol'; // Penanganan error
+            }
+            
+            switch (op) {
+                case '+': return prev + next;
+                case '-': return prev - next;
+                case '*': return prev * next;
+                case '/': return prev / next;
+                default: return next;
+            }
+        };
+
+        // Fungsi untuk menangani input angka dan desimal
+        function inputDigit(digit) {
+            if (currentInput === 'Error: Dibagi Nol') {
+                 currentInput = '0';
+            }
+            
+            if (digit === '.') {
+                if (currentInput.includes('.')) return;
+            }
+
+            if (awaitingSecondOperand) {
+                currentInput = digit === '.' ? '0.' : digit;
+                awaitingSecondOperand = false;
+                historyString = previousInput + ' ' + operator + ' ';
+            } else {
+                if (currentInput === '0' && digit !== '.') {
+                    currentInput = digit;
+                } else {
+                    currentInput += digit;
+                }
+            }
+            updateDisplay();
+        }
+
+        // Fungsi untuk mengubah tanda (positif/negatif)
+        function toggleSign() {
+            if (currentInput.startsWith('-')) {
+                currentInput = currentInput.substring(1);
+            } else if (currentInput !== '0') {
+                currentInput = '-' + currentInput;
+            }
+            updateDisplay();
+        }
+
+        // Fungsi untuk menangani operator
+        function handleOperator(nextOperator) {
+            const inputValue = parseFloat(currentInput);
+            
+            if (operator && awaitingSecondOperand) {
+                operator = nextOperator; // Mengganti operator jika belum ada input kedua
+                historyString = previousInput + ' ' + nextOperator + ' ';
+                updateDisplay();
+                return;
+            }
+            
+            if (previousInput === null) {
+                previousInput = inputValue;
+            } else if (operator) {
+                const result = operate(previousInput, inputValue, operator);
+                if (typeof result === 'string') {
+                    currentInput = result; // Menampilkan Error
+                    previousInput = null;
+                    operator = null;
+                    historyString = '';
+                    updateDisplay();
+                    return;
+                }
+                
+                // Pembulatan untuk menghindari floating point error
+                previousInput = Math.round(result * 10000) / 10000; 
+                currentInput = String(previousInput);
+            }
+            
+            awaitingSecondOperand = true;
+            operator = nextOperator;
+            historyString = currentInput + ' ' + operator + ' ';
+            updateDisplay();
+        }
+
+        // Fungsi untuk tombol Equals (=)
+        function handleEquals() {
+            if (previousInput === null || operator === null) {
+                return;
+            }
+
+            const inputValue = parseFloat(currentInput);
+            const result = operate(previousInput, inputValue, operator);
+            
+            const fullCalculation = `${previousInput} ${operator} ${inputValue} = ${result}`;
+
+            if (typeof result === 'string') {
+                currentInput = result; // Menampilkan Error
+            } else {
+                // Pembulatan dan pembaruan state
+                currentInput = String(Math.round(result * 10000) / 10000); 
+                
+                // Update History (max 5)
+                calculationHistory.unshift(fullCalculation); // Tambahkan ke depan
+                if (calculationHistory.length > MAX_HISTORY) {
+                    calculationHistory.pop(); // Hapus yang paling lama
+                }
+            }
+
+            // Reset state untuk perhitungan berantai berikutnya
+            previousInput = null;
+            operator = null;
+            awaitingSecondOperand = true;
+            historyString = '';
+            
+            updateDisplay();
+            updateHistoryList();
+        }
+
+        // Fungsi untuk tombol Clear (C/CE)
+        function clearCalculator(type) {
+            if (type === 'C') { // Clear All
+                currentInput = '0';
+                previousInput = null;
+                operator = null;
+                historyString = '';
+                awaitingSecondOperand = false;
+                updateHistoryList(); // C juga membersihkan history
+                calculationHistory = []; 
+            } else if (type === 'CE') { // Clear Entry
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        // Fungsi untuk tombol Memory (M+, M-, MR, MC)
+        function handleMemory(action) {
+            const currentNumber = parseFloat(currentInput);
+            
+            switch (action) {
+                case 'MC': // Memory Clear
+                    memoryValue = 0;
+                    break;
+                case 'MR': // Memory Recall
+                    currentInput = String(memoryValue);
+                    awaitingSecondOperand = true;
+                    break;
+                case 'M+': // Memory Add
+                    memoryValue += currentNumber;
+                    break;
+                case 'M-': // Memory Subtract
+                    memoryValue -= currentNumber;
+                    break;
+            }
+            
+            // Pembulatan memory value
+            memoryValue = Math.round(memoryValue * 10000) / 10000;
+            memoryValueElement.innerText = memoryValue;
+            updateDisplay();
+        }
+        
+        // Dukungan Keyboard (Mirip 5.3 - Event Listener)
+        window.addEventListener('keydown', (event) => {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                inputDigit(key);
+            } else if (key === '.') {
+                inputDigit(key);
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                handleOperator(key);
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault(); // Mencegah form submit
+                handleEquals();
+            } else if (key === 'Escape' || key.toLowerCase() === 'c') {
+                clearCalculator('C');
+            } else if (key === 'Backspace') {
+                // Hapus karakter terakhir
+                currentInput = currentInput.slice(0, -1);
+                if (currentInput.length === 0 || currentInput === '-') {
+                    currentInput = '0';
+                }
+                updateDisplay();
+            }
+        });
+
+        // Inisialisasi tampilan saat halaman dimuat
+        updateDisplay();
+    </script>
+</body>
+</html>
