@@ -193,233 +193,250 @@
         </div>
     </div>
     
-    <script>
-        // State Kalkulator (Menggunakan konsep dari 5.4 - manajemen state)
-        let currentInput = '0';    
-        let previousInput = null;  
-        let operator = null;       
-        let historyString = '';    
-        let awaitingSecondOperand = false; 
-        let calculationHistory = []; // Untuk riwayat (max 5)
-        let memoryValue = 0;       // Untuk fungsi M+, M-, MR, MC
+   <script>
+    // State Kalkulator (Menggunakan konsep dari 5.4 - manajemen state)
+    let currentInput = '0';    
+    let previousInput = null;  
+    let operator = null;       
+    let historyString = '';    
+    let awaitingSecondOperand = false; 
+    let calculationHistory = []; // Untuk riwayat (max 5)
+    let memoryValue = 0;       // Untuk fungsi M+, M-, MR, MC
 
-        const MAX_HISTORY = 5;
+    const MAX_HISTORY = 5;
 
-        // Mendapatkan elemen DOM (Mirip 5.2 - Manipulasi DOM)
-        const currentDisplay = document.getElementById('current-display');
-        const historyDisplay = document.getElementById('history-display');
-        const historyList = document.getElementById('history-list');
-        const memoryValueElement = document.getElementById('memory-value');
+    // Mendapatkan elemen DOM (Mirip 5.2 - Manipulasi DOM)
+    const currentDisplay = document.getElementById('current-display');
+    const historyDisplay = document.getElementById('history-display');
+    const historyList = document.getElementById('history-list');
+    const memoryValueElement = document.getElementById('memory-value');
 
-        // Fungsi Update DOM Display (Mirip 5.2)
-        function updateDisplay() {
-            currentDisplay.innerText = currentInput;
-            historyDisplay.innerText = historyString;
-            // Batasi panjang tampilan agar tidak terlalu lebar
-            if (currentInput.length > 12) {
-                currentDisplay.style.fontSize = '2em';
-            } else {
-                currentDisplay.style.fontSize = '3em';
-            }
+    // Fungsi Update DOM Display (Mirip 5.2)
+    function updateDisplay() {
+        // Tampilkan input saat ini
+        currentDisplay.innerText = currentInput;
+        
+        // Tampilkan histori operasi saat ini (operand 1 dan operator)
+        historyDisplay.innerText = historyString; 
+        
+        // Batasi panjang tampilan agar tidak terlalu lebar
+        if (currentInput && currentInput.length > 12) {
+            currentDisplay.style.fontSize = '2em';
+        } else {
+            currentDisplay.style.fontSize = '3em';
+        }
+    }
+    
+    // Fungsi Update History List
+    function updateHistoryList() {
+        historyList.innerHTML = calculationHistory.map(item => `
+            <li>${item}</li>
+        `).join('');
+    }
+
+    // Fungsi Operasi Aritmatika (Mirip 5.1 - Fungsi JavaScript)
+    const operate = (prev, next, op) => {
+        prev = parseFloat(prev);
+        next = parseFloat(next);
+
+        if (op === '/' && next === 0) {
+            return 'Error: Dibagi Nol'; // Penanganan error
         }
         
-        // Fungsi Update History List
-        function updateHistoryList() {
-            historyList.innerHTML = calculationHistory.map(item => `
-                <li>${item}</li>
-            `).join('');
+        switch (op) {
+            case '+': return prev + next;
+            case '-': return prev - next;
+            case '*': return prev * next;
+            case '/': return prev / next;
+            default: return next;
+        }
+    };
+
+    // Fungsi untuk menangani input angka dan desimal
+    function inputDigit(digit) {
+        if (currentInput === 'Error: Dibagi Nol') {
+             currentInput = '0';
+        }
+        
+        if (digit === '.') {
+            if (currentInput.includes('.')) return;
         }
 
-        // Fungsi Operasi Aritmatika (Mirip 5.1 - Fungsi JavaScript)
-        const operate = (prev, next, op) => {
-            prev = parseFloat(prev);
-            next = parseFloat(next);
-
-            if (op === '/' && next === 0) {
-                return 'Error: Dibagi Nol'; // Penanganan error
-            }
-            
-            switch (op) {
-                case '+': return prev + next;
-                case '-': return prev - next;
-                case '*': return prev * next;
-                case '/': return prev / next;
-                default: return next;
-            }
-        };
-
-        // Fungsi untuk menangani input angka dan desimal
-        function inputDigit(digit) {
-            if (currentInput === 'Error: Dibagi Nol') {
-                 currentInput = '0';
-            }
-            
-            if (digit === '.') {
-                if (currentInput.includes('.')) return;
-            }
-
-            if (awaitingSecondOperand) {
-                currentInput = digit === '.' ? '0.' : digit;
-                awaitingSecondOperand = false;
-                historyString = previousInput + ' ' + operator + ' ';
+        // KUNCI PERUBAHAN: Jika sedang menunggu operand kedua, 
+        // pastikan historyString menampilkan operasi yang ditahan
+        if (awaitingSecondOperand) {
+            currentInput = digit === '.' ? '0.' : digit;
+            awaitingSecondOperand = false;
+            // historyString TIDAK di-reset, tapi dipertahankan dari handleOperator
+        } else {
+            if (currentInput === '0' && digit !== '.') {
+                currentInput = digit;
             } else {
-                if (currentInput === '0' && digit !== '.') {
-                    currentInput = digit;
-                } else {
-                    currentInput += digit;
-                }
+                currentInput += digit;
             }
-            updateDisplay();
         }
+        updateDisplay();
+    }
 
-        // Fungsi untuk mengubah tanda (positif/negatif)
-        function toggleSign() {
-            if (currentInput.startsWith('-')) {
-                currentInput = currentInput.substring(1);
-            } else if (currentInput !== '0') {
-                currentInput = '-' + currentInput;
-            }
-            updateDisplay();
+    // Fungsi untuk mengubah tanda (positif/negatif)
+    function toggleSign() {
+        if (currentInput.startsWith('-')) {
+            currentInput = currentInput.substring(1);
+        } else if (currentInput !== '0') {
+            currentInput = '-' + currentInput;
         }
+        updateDisplay();
+    }
 
-        // Fungsi untuk menangani operator
-        function handleOperator(nextOperator) {
-            const inputValue = parseFloat(currentInput);
-            
-            if (operator && awaitingSecondOperand) {
-                operator = nextOperator; // Mengganti operator jika belum ada input kedua
-                historyString = previousInput + ' ' + nextOperator + ' ';
-                updateDisplay();
-                return;
-            }
-            
-            if (previousInput === null) {
-                previousInput = inputValue;
-            } else if (operator) {
-                const result = operate(previousInput, inputValue, operator);
-                if (typeof result === 'string') {
-                    currentInput = result; // Menampilkan Error
-                    previousInput = null;
-                    operator = null;
-                    historyString = '';
-                    updateDisplay();
-                    return;
-                }
-                
-                // Pembulatan untuk menghindari floating point error
-                previousInput = Math.round(result * 10000) / 10000; 
-                currentInput = String(previousInput);
-            }
-            
-            awaitingSecondOperand = true;
-            operator = nextOperator;
-            historyString = currentInput + ' ' + operator + ' ';
+    // Fungsi untuk menangani operator
+    function handleOperator(nextOperator) {
+        const inputValue = parseFloat(currentInput);
+        
+        if (operator && awaitingSecondOperand) {
+            operator = nextOperator; // Mengganti operator jika belum ada input kedua
+            historyString = previousInput + ' ' + nextOperator + ' ';
             updateDisplay();
+            return;
         }
-
-        // Fungsi untuk tombol Equals (=)
-        function handleEquals() {
-            if (previousInput === null || operator === null) {
-                return;
-            }
-
-            const inputValue = parseFloat(currentInput);
+        
+        if (previousInput === null) {
+            previousInput = inputValue;
+        } else if (operator) {
+            // Lakukan perhitungan segera jika ada operator dan input
             const result = operate(previousInput, inputValue, operator);
             
-            const fullCalculation = `${previousInput} ${operator} ${inputValue} = ${result}`;
-
             if (typeof result === 'string') {
                 currentInput = result; // Menampilkan Error
-            } else {
-                // Pembulatan dan pembaruan state
-                currentInput = String(Math.round(result * 10000) / 10000); 
-                
-                // Update History (max 5)
-                calculationHistory.unshift(fullCalculation); // Tambahkan ke depan
-                if (calculationHistory.length > MAX_HISTORY) {
-                    calculationHistory.pop(); // Hapus yang paling lama
-                }
-            }
-
-            // Reset state untuk perhitungan berantai berikutnya
-            previousInput = null;
-            operator = null;
-            awaitingSecondOperand = true;
-            historyString = '';
-            
-            updateDisplay();
-            updateHistoryList();
-        }
-
-        // Fungsi untuk tombol Clear (C/CE)
-        function clearCalculator(type) {
-            if (type === 'C') { // Clear All
-                currentInput = '0';
                 previousInput = null;
                 operator = null;
                 historyString = '';
-                awaitingSecondOperand = false;
-                updateHistoryList(); // C juga membersihkan history
-                calculationHistory = []; 
-            } else if (type === 'CE') { // Clear Entry
+                updateDisplay();
+                return;
+            }
+            
+            // Pembulatan untuk menghindari floating point error
+            previousInput = Math.round(result * 10000) / 10000; 
+            currentInput = String(previousInput);
+        }
+        
+        awaitingSecondOperand = true;
+        operator = nextOperator;
+        // KUNCI: Set historyString dengan hasil/input saat ini + operator baru
+        historyString = currentInput + ' ' + operator + ' '; 
+        updateDisplay();
+    }
+
+    // Fungsi untuk tombol Equals (=)
+    function handleEquals() {
+        // Gunakan currentInput sebagai operand kedua. Jika awaitingSecondOperand true, 
+        // gunakan previousInput (untuk perhitungan berulang cth: 5+=)
+        const secondOperand = awaitingSecondOperand ? previousInput : parseFloat(currentInput); 
+        
+        if (previousInput === null || operator === null || secondOperand === null) {
+            return;
+        }
+
+        const firstOperand = previousInput;
+        const op = operator; // Simpan operator untuk histori
+        
+        const result = operate(firstOperand, secondOperand, op);
+
+        // History yang akan disimpan sebelum direset
+        const fullCalculation = `${firstOperand} ${op} ${secondOperand === firstOperand ? '' : secondOperand} = ${result}`;
+
+        if (typeof result === 'string') {
+            currentInput = result; // Menampilkan Error
+        } else {
+            // Pembulatan dan pembaruan state
+            currentInput = String(Math.round(result * 10000) / 10000); 
+            
+            // Update History (max 5)
+            calculationHistory.unshift(fullCalculation); // Tambahkan ke depan
+            if (calculationHistory.length > MAX_HISTORY) {
+                calculationHistory.pop(); // Hapus yang paling lama
+            }
+        }
+
+        // Reset state untuk perhitungan berantai berikutnya
+        previousInput = parseFloat(currentInput); // Hasil menjadi operand pertama untuk perhitungan berantai selanjutnya
+        // operator dan historyString DIBIARKAN null/kosong
+        awaitingSecondOperand = true;
+        historyString = ''; // Kosongkan tampilan histori operasi
+        
+        updateDisplay();
+        updateHistoryList(); // PENTING: Panggil ini untuk update list
+    }
+
+    // Fungsi untuk tombol Clear (C/CE)
+    function clearCalculator(type) {
+        if (type === 'C') { // Clear All
+            currentInput = '0';
+            previousInput = null;
+            operator = null;
+            historyString = '';
+            awaitingSecondOperand = false;
+            calculationHistory = []; 
+            updateHistoryList(); // C juga membersihkan history list
+        } else if (type === 'CE') { // Clear Entry
+            currentInput = '0';
+        }
+        updateDisplay();
+    }
+
+    // Fungsi untuk tombol Memory (M+, M-, MR, MC)
+    function handleMemory(action) {
+        const currentNumber = parseFloat(currentInput);
+        
+        switch (action) {
+            case 'MC': // Memory Clear
+                memoryValue = 0;
+                break;
+            case 'MR': // Memory Recall
+                currentInput = String(memoryValue);
+                awaitingSecondOperand = true;
+                break;
+            case 'M+': // Memory Add
+                memoryValue += currentNumber;
+                break;
+            case 'M-': // Memory Subtract
+                memoryValue -= currentNumber;
+                break;
+        }
+        
+        // Pembulatan memory value
+        memoryValue = Math.round(memoryValue * 10000) / 10000;
+        memoryValueElement.innerText = memoryValue; // PENTING: Update nilai M di DOM
+        updateDisplay();
+    }
+    
+    // Dukungan Keyboard (Mirip 5.3 - Event Listener)
+    window.addEventListener('keydown', (event) => {
+        const key = event.key;
+        
+        if (key >= '0' && key <= '9') {
+            inputDigit(key);
+        } else if (key === '.') {
+            inputDigit(key);
+        } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+            handleOperator(key === '/' ? '/' : key === '*' ? '*' : key); // Penyesuaian keyboard
+        } else if (key === 'Enter' || key === '=') {
+            event.preventDefault(); // Mencegah form submit
+            handleEquals();
+        } else if (key === 'Escape' || key.toLowerCase() === 'c') {
+            clearCalculator('C');
+        } else if (key === 'Backspace') {
+            if (currentInput.length > 1 && currentInput !== 'Error: Dibagi Nol') {
+                currentInput = currentInput.slice(0, -1);
+            } else if (currentInput.length === 1 || currentInput === 'Error: Dibagi Nol') {
                 currentInput = '0';
             }
             updateDisplay();
         }
+    });
 
-        // Fungsi untuk tombol Memory (M+, M-, MR, MC)
-        function handleMemory(action) {
-            const currentNumber = parseFloat(currentInput);
-            
-            switch (action) {
-                case 'MC': // Memory Clear
-                    memoryValue = 0;
-                    break;
-                case 'MR': // Memory Recall
-                    currentInput = String(memoryValue);
-                    awaitingSecondOperand = true;
-                    break;
-                case 'M+': // Memory Add
-                    memoryValue += currentNumber;
-                    break;
-                case 'M-': // Memory Subtract
-                    memoryValue -= currentNumber;
-                    break;
-            }
-            
-            // Pembulatan memory value
-            memoryValue = Math.round(memoryValue * 10000) / 10000;
-            memoryValueElement.innerText = memoryValue;
-            updateDisplay();
-        }
-        
-        // Dukungan Keyboard (Mirip 5.3 - Event Listener)
-        window.addEventListener('keydown', (event) => {
-            const key = event.key;
-            
-            if (key >= '0' && key <= '9') {
-                inputDigit(key);
-            } else if (key === '.') {
-                inputDigit(key);
-            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
-                handleOperator(key);
-            } else if (key === 'Enter' || key === '=') {
-                event.preventDefault(); // Mencegah form submit
-                handleEquals();
-            } else if (key === 'Escape' || key.toLowerCase() === 'c') {
-                clearCalculator('C');
-            } else if (key === 'Backspace') {
-                // Hapus karakter terakhir
-                currentInput = currentInput.slice(0, -1);
-                if (currentInput.length === 0 || currentInput === '-') {
-                    currentInput = '0';
-                }
-                updateDisplay();
-            }
-        });
-
-        // Inisialisasi tampilan saat halaman dimuat
-        updateDisplay();
-    </script>
+    // Inisialisasi tampilan saat halaman dimuat
+    updateDisplay();
+    memoryValueElement.innerText = memoryValue;
+</script>
 </body>
 </html>
