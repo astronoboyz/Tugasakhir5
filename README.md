@@ -48,6 +48,8 @@ Berikut adalah beberapa tampilan utama yang menonjolkan fitur-fitur Kalkulator I
 
 
 *Menampilkan layar utama kalkulator dengan riwayat perhitungan (history) dan nilai yang sedang diketik (current display). Panel Riwayat Perhitungan terlihat di bagian bawah.*
+<img width="913" height="887" alt="image" src="https://github.com/user-attachments/assets/46cf8af0-c1f8-4476-b66f-1b62b89fa9b1" />
+
 
 ### 2. Error Handling (Dibagi Nol)
 
