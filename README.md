@@ -45,40 +45,27 @@ Berikut adalah beberapa tampilan utama yang menonjolkan fitur-fitur Kalkulator I
 
 ### 1. Tampilan Utama
 
-
-
-*Menampilkan layar utama kalkulator dengan riwayat perhitungan (history) dan nilai yang sedang diketik (current display). Panel Riwayat Perhitungan terlihat di bagian bawah.*
 <img width="913" height="887" alt="image" src="https://github.com/user-attachments/assets/46cf8af0-c1f8-4476-b66f-1b62b89fa9b1" />
 
+*Menampilkan layar utama kalkulator dengan riwayat perhitungan (history) dan nilai yang sedang diketik (current display). Panel Riwayat Perhitungan terlihat di bagian bawah.*
 
 ### 2. Error Handling (Dibagi Nol)
 
 
-
-[Image of Tidak Bisaa Dibagi 0]
+<img width="1121" height="837" alt="image" src="https://github.com/user-attachments/assets/1babedb9-021b-4ddd-9440-3b17654ab4e7" />
 
 
 *Menunjukkan mekanisme Error Handling, di mana sistem akan menampilkan pesan peringatan **"Error: Dibagi Nol"** jika pengguna mencoba melakukan pembagian dengan angka nol, menjaga agar aplikasi tidak crash.*
 
 ### 3. Penggunaan Memori (M- / M+)
 
+<img width="765" height="872" alt="image" src="https://github.com/user-attachments/assets/5379fe23-0312-4456-a6f9-9331dbe3e886" />
 
 
 *Ilustrasi penggunaan tombol **M+** (Memory Plus) dan **M-** (Memory Minus) yang berfungsi menambahkan atau mengurangi angka saat ini dari nilai memori yang tersimpan.*
 
-### 4. Reset Memori (MC)
 
 
-
-*Tampilan yang menunjukkan saat tombol **MC** (Memory Clear) ditekan, mengembalikan nilai memori (**Memory (M): 0**) menjadi nol.*
-
-### 5. Tampilan Responsif
-
-
-
-*Menampilkan bagaimana desain kalkulator secara otomatis menyesuaikan (**responsive**) ketika diakses melalui perangkat **mobile** (smartphone), dengan elemen UI yang tetap terorganisir dan mudah diakses.*
-
----
 
 ## ⚙️ Panduan Instalasi dan Penggunaan
 
